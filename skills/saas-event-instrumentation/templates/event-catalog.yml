@@ -1,0 +1,117 @@
+# Modèle de catalogue d'événements analytics — saas-event-instrumentation.
+# Copiez ce fichier dans le projet cible (ex: analytics/event-catalog.yml) et adaptez-le.
+#
+# Validez toute modification avec :
+#   npx tsx skills/saas-event-instrumentation/scripts/validate-event-catalog.ts <chemin_du_fichier>
+#
+# Règles :
+# - name          : snake_case, format objet_action (voir references/event-taxonomy.md)
+# - status        : draft | stable | deprecated
+# - trigger       : client | server | both
+# - properties[].type : string | number | boolean
+# - Aucune propriété ne doit contenir de PII (email, téléphone, nom complet, adresse, IP, etc.)
+
+version: '1'
+
+events:
+  - name: signup_completed
+    category: signup
+    description: L'utilisateur a terminé la création de son compte.
+    owner: growth
+    status: stable
+    since: 'v1'
+    trigger: server
+    properties:
+      - name: plan
+        type: string
+        required: true
+      - name: source
+        type: string
+        required: false
+
+  - name: onboarding_started
+    category: onboarding
+    description: L'utilisateur a démarré le parcours d'onboarding post-inscription.
+    owner: growth
+    status: stable
+    since: 'v1'
+    trigger: client
+    properties:
+      - name: onboarding_variant
+        type: string
+        required: false
+
+  - name: onboarding_completed
+    category: onboarding
+    description: L'utilisateur a terminé le parcours d'onboarding.
+    owner: growth
+    status: stable
+    since: 'v1'
+    trigger: client
+    properties:
+      - name: steps_completed
+        type: number
+        required: true
+
+  - name: feature_used
+    category: activation
+    description: L'utilisateur a utilisé une fonctionnalité clé du produit.
+    owner: product
+    status: stable
+    since: 'v1'
+    trigger: client
+    properties:
+      - name: feature_key
+        type: string
+        required: true
+
+  - name: checkout_started
+    category: revenue
+    description: L'utilisateur a démarré un parcours de paiement.
+    owner: revenue
+    status: stable
+    since: 'v1'
+    trigger: client
+    properties:
+      - name: plan
+        type: string
+        required: true
+      - name: amount_cents
+        type: number
+        required: true
+      - name: currency
+        type: string
+        required: true
+
+  - name: subscription_started
+    category: revenue
+    description: Un abonnement payant a été confirmé côté serveur.
+    owner: revenue
+    status: stable
+    since: 'v1'
+    trigger: server
+    properties:
+      - name: plan
+        type: string
+        required: true
+      - name: amount_cents
+        type: number
+        required: true
+      - name: currency
+        type: string
+        required: true
+
+  - name: subscription_cancelled
+    category: revenue
+    description: Un abonnement a été résilié.
+    owner: revenue
+    status: stable
+    since: 'v1'
+    trigger: server
+    properties:
+      - name: plan
+        type: string
+        required: true
+      - name: cancellation_reason_code
+        type: string
+        required: false
