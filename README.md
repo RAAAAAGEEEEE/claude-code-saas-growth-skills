@@ -9,6 +9,64 @@ Stack de référence : **TypeScript, Node.js 22+, Next.js App Router, PostHog** 
 cloud). Aucune hypothèse de déploiement Vercel n'est faite : les exemples fonctionnent aussi bien
 sur un VPS self-hosted.
 
+## Comment ça marche
+
+Pour un débutant, trois gestes, et aucun copier-coller du dépôt dans la conversation :
+
+1. **Installer les skills une fois** : clonez le dépôt, puis copiez chaque dossier `skills/<nom>`
+   dans `~/.claude/skills/<nom>` (disponible dans tous vos projets) ou dans `.claude/skills/<nom>`
+   d'un projet (disponible dans ce projet seulement).
+
+   ```bash
+   git clone https://github.com/RAAAAAGEEEEE/claude-code-saas-growth-skills
+   cd claude-code-saas-growth-skills
+   mkdir -p ~/.claude/skills
+   cp -r skills/ads-conversion-tracking skills/saas-event-instrumentation skills/saas-funnel-diagnosis ~/.claude/skills/
+   ```
+
+   Variante Windows PowerShell :
+
+   ```powershell
+   New-Item -ItemType Directory -Force "$HOME\.claude\skills" | Out-Null
+   Copy-Item -Recurse -Force skills\ads-conversion-tracking, skills\saas-event-instrumentation, skills\saas-funnel-diagnosis "$HOME\.claude\skills"
+   ```
+
+2. **Le lancer** : dans Claude Code, tapez `/<nom>`, où `<nom>` est le champ `name` du `SKILL.md`
+   (`/saas-event-instrumentation`, `/saas-funnel-diagnosis` ou `/ads-conversion-tracking`). Ces trois
+   skills sont à invocation manuelle : Claude ne les déclenche pas tout seul à partir d'une phrase.
+3. **Se laisser guider** : Claude suit pas à pas la procédure du skill et demande votre accord avant
+   toute action externe ou irréversible. Vous pouvez ensuite lui parler normalement.
+
+Détail et variante projet : [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+## Statut
+
+**Alpha, version 0.1.0** (CHANGELOG : [CHANGELOG.md](CHANGELOG.md)). Trois skills, 61 tests sur les
+scripts (résultat du 2026-10-05), aucune release publiée, peu de retours d'usage.
+
+## Public cible et prérequis
+
+Solopreneur SaaS ou petite équipe en TypeScript/Next.js. Prérequis : Claude Code et `git` ; Node.js
+22 ou plus seulement pour compiler et tester les scripts.
+
+## Quickstart
+
+```bash
+npm ci
+npm test
+node dist/skills/saas-funnel-diagnosis/scripts/analyze-funnel.js tests/fixtures/funnel-metrics-sample.csv
+```
+
+Sortie (extrait, exemple réel sur la fixture du dépôt) :
+
+```text
+# Rapport d'analyse de funnel
+- Période analysée : 2026-06
+- Conversion globale (signup_completed → subscription_started) : 15.0 % (150/1000)
+```
+
+Autres usages et scripts : [docs/USAGE.md](docs/USAGE.md).
+
 ## Pourquoi ce dépôt
 
 Un solopreneur SaaS passe rapidement de "j'ai codé une fonctionnalité" à "je ne sais pas pourquoi
@@ -20,28 +78,13 @@ ma conversion baisse". Ces skills couvrent trois étapes reliées entre elles :
 3. **Câbler** le tracking de conversion vers une plateforme publicitaire une fois la conversion
    confirmée, en toute sécurité (`ads-conversion-tracking`).
 
-## Installation avec Claude Code
+## Skills disponibles
 
-Claude Code découvre les skills placés dans `.claude/skills/<nom>/SKILL.md` d'un projet. La source
-de vérité de chaque skill de ce dépôt vit dans [`skills/`](skills/) ; pour l'utiliser dans votre
-propre projet, copiez le dossier souhaité :
-
-```bash
-cp -r skills/saas-event-instrumentation /chemin/vers/votre-projet/.claude/skills/
-cp -r skills/saas-funnel-diagnosis /chemin/vers/votre-projet/.claude/skills/
-cp -r skills/ads-conversion-tracking /chemin/vers/votre-projet/.claude/skills/
-```
-
-Claude Code chargera alors le `SKILL.md` de chaque skill, ainsi que ses sous-dossiers
-`references/`, `templates/` et `scripts/` associés. Voir aussi
-[.claude/skills/README.md](.claude/skills/README.md).
-
-## Usage
-
-Une fois un skill installé, invoquez-le naturellement dans Claude Code en décrivant votre besoin
-(« j'ajoute un événement pour le nouveau flow d'onboarding », « pourquoi ma conversion signup →
-paiement a baissé ce mois-ci », « je veux envoyer mes conversions vers Meta Ads »). Claude Code
-active le skill pertinent automatiquement en fonction de sa description.
+| Skill                                                                      | Rôle                                                                                                                                                                       |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`saas-event-instrumentation`](skills/saas-event-instrumentation/SKILL.md) | Audit puis implémentation d'une instrumentation analytics PostHog (invocation manuelle uniquement, `argument-hint: [objectif-produit]`)                                    |
+| [`saas-funnel-diagnosis`](skills/saas-funnel-diagnosis/SKILL.md)           | Diagnostic de funnel à partir d'un export agrégé (invocation manuelle uniquement, `argument-hint: [fichier-csv-ou-chemin]`)                                                |
+| [`ads-conversion-tracking`](skills/ads-conversion-tracking/SKILL.md)       | Audit puis câblage du tracking de conversion vers des canaux publicitaires externes (invocation manuelle uniquement, `argument-hint: [provider] [objectif-de-conversion]`) |
 
 ## Convention des skills
 
@@ -73,108 +116,50 @@ Trois règles transverses s'appliquent à tous les skills de ce dépôt :
 skills/              source de vérité de chaque skill
 scripts/             utilitaires partagés au dépôt (hors skills)
 templates/           modèles partagés au dépôt (hors skills)
-docs/                documentation complémentaire
+docs/                documentation détaillée
 examples/nextjs-posthog/  exemple minimal Next.js App Router + PostHog self-hosted
 tests/               tests (node:test) des scripts des skills
 ```
 
-## Skills disponibles
+## Architecture
 
-| Skill                                                                      | Rôle                                                                                                                                                                       |
-| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`saas-event-instrumentation`](skills/saas-event-instrumentation/SKILL.md) | Audit puis implémentation d'une instrumentation analytics PostHog (invocation manuelle uniquement, `argument-hint: [objectif-produit]`)                                    |
-| [`saas-funnel-diagnosis`](skills/saas-funnel-diagnosis/SKILL.md)           | Diagnostic de funnel à partir d'un export agrégé (invocation manuelle uniquement, `argument-hint: [fichier-csv-ou-chemin]`)                                                |
-| [`ads-conversion-tracking`](skills/ads-conversion-tracking/SKILL.md)       | Audit puis câblage du tracking de conversion vers des canaux publicitaires externes (invocation manuelle uniquement, `argument-hint: [provider] [objectif-de-conversion]`) |
+Des dossiers de skills (instructions Markdown, références, modèles, petits scripts TypeScript sans
+appel réseau), des tests `node:test` et un exemple Next.js. Détail :
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-### Détail : `saas-event-instrumentation`
+## Configuration
 
-Ce skill suit une procédure stricte **audit → plan → validation utilisateur → implémentation →
-tests → rapport**, et ne s'invoque que manuellement (`/saas-event-instrumentation
-[objectif-produit]`) :
+Les skills n'ont pas de réglage ; l'exemple lit trois variables d'environnement, et le template de
+conversion une quatrième (dry-run par défaut). Voir [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
-- [references/event-taxonomy.md](skills/saas-event-instrumentation/references/event-taxonomy.md) —
-  taxonomie par catégories de cycle de vie (signup, onboarding, activation, revenue) et propriétés
-  communes.
-- [templates/event-catalog.yml](skills/saas-event-instrumentation/templates/event-catalog.yml) —
-  modèle de catalogue d'événements à copier dans le projet cible.
-- [scripts/validate-event-catalog.ts](skills/saas-event-instrumentation/scripts/validate-event-catalog.ts) —
-  valide le format du catalogue, détecte doublons, noms invalides et propriétés interdites (PII
-  potentielle).
+## Sécurité et confidentialité
 
-Si PostHog n'est pas installé dans le projet cible, ce skill ne l'ajoute jamais silencieusement :
-il produit un plan et attend une validation explicite avant toute modification de `package.json`.
+Aucun secret ni donnée personnelle dans ce dépôt ; aucun appel réseau par défaut. Voir
+[docs/PRIVACY_AND_SECURITY.md](docs/PRIVACY_AND_SECURITY.md) et [SECURITY.md](SECURITY.md).
 
-### Détail : `saas-funnel-diagnosis`
+## Limites
 
-Ce skill transforme un export CSV agrégé (étape, utilisateurs, période) en diagnostic actionnable,
-en lecture seule et sans aucun appel API réel. Protocole strict **validation des données → calcul
-du funnel → détection du goulot → hypothèses → expérimentations → plan de mesure**, invocation
-manuelle uniquement (`/saas-funnel-diagnosis [fichier-csv-ou-chemin]`) :
+Stack ciblée TypeScript/Next.js/PostHog, résultats dépendants de Claude, aucune garantie de
+conformité légale, aucune régie testée en réel. Liste complète :
+[docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
-- [references/metrics-glossary.md](skills/saas-funnel-diagnosis/references/metrics-glossary.md) —
-  définitions et formules : activation, conversion, rétention, churn, cohortes, ARPU, MRR.
-- [references/hypothesis-checklist.md](skills/saas-funnel-diagnosis/references/hypothesis-checklist.md) —
-  causes fréquentes d'abandon, point de départ pour les hypothèses.
-- [templates/funnel-report.md](skills/saas-funnel-diagnosis/templates/funnel-report.md) — format du
-  rapport final (résumé exécutif, tableau des étapes, goulot, hypothèses classées ICE, événements à
-  ajouter, risques et limites, prochaine action unique).
-- [scripts/analyze-funnel.ts](skills/saas-funnel-diagnosis/scripts/analyze-funnel.ts) — CLI qui
-  parse le CSV, calcule les conversions, détecte les valeurs incohérentes (funnel qui croît d'une
-  étape à l'autre, doublons) et produit un rapport Markdown déterministe. Ne dépend d'aucun SDK
-  analytics.
+## Roadmap
 
-Ce skill ne formule jamais de promesse de causalité à partir d'une simple corrélation, signale
-toujours ses limites statistiques (taille d'échantillon), et ne recommande jamais de dark pattern.
-Toute modification de code qui découlerait du diagnostic exige une confirmation explicite avant
-d'être implémentée (via le skill `saas-event-instrumentation`).
+Non contractuelle : [ROADMAP.md](ROADMAP.md).
 
-### Détail : `ads-conversion-tracking`
+## Documentation détaillée
 
-**Ce skill ne crée pas de publicités dans Claude et ne dépend d'aucune régie « Claude Ads ».** Il
-aide à auditer puis implémenter le tracking de conversion d'un SaaS pour des canaux publicitaires
-externes réels (Google Ads, Meta Ads, LinkedIn Ads, OpenAI Ads, canaux UTM custom). Workflow en 8
-étapes — **audit → cartographie du parcours → consentement → stratégie client/serveur → plan de
-changement → confirmation → implémentation → vérification** — invocation manuelle uniquement
-(`/ads-conversion-tracking [provider] [objectif-de-conversion]`) :
+- [Installation](docs/INSTALLATION.md)
+- [Usage et détail de chaque skill](docs/USAGE.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Confidentialité et sécurité](docs/PRIVACY_AND_SECURITY.md)
+- [Dépannage](docs/TROUBLESHOOTING.md)
+- [Limitations](docs/LIMITATIONS.md)
 
-- [references/provider-neutral-tracking.md](skills/ads-conversion-tracking/references/provider-neutral-tracking.md) —
-  UTM normalisées, attribution first-touch/last-touch, événements de conversion, idempotence,
-  déduplication client/serveur, données interdites.
-- [references/dedup-checklist.md](skills/ads-conversion-tracking/references/dedup-checklist.md) —
-  checklist détaillée de déduplication client/serveur.
-- [templates/conversion-tracking-plan.md](skills/ads-conversion-tracking/templates/conversion-tracking-plan.md) —
-  plan à remplir et faire valider avant toute implémentation (provider, objectif, événement,
-  déclencheur, données envoyées, consentement requis, rollback, validation).
-- [templates/conversion-payload.template.ts](skills/ads-conversion-tracking/templates/conversion-payload.template.ts) —
-  payload de conversion serveur avec `event_id` partagé et champs hashés, dry-run par défaut.
-- [scripts/hash-pii.ts](skills/ads-conversion-tracking/scripts/hash-pii.ts) — hashage SHA-256
-  normalisé pour email et téléphone.
-- [scripts/audit-tracking-config.ts](skills/ads-conversion-tracking/scripts/audit-tracking-config.ts) —
-  audite `.env.example`, fichiers de config et code TypeScript pour repérer des secrets/identifiants
-  codés en dur et vérifier la présence d'une variable de consentement, sans jamais révéler la
-  valeur détectée.
+## Contribuer
 
-Ce skill exige une stratégie de consentement validée avant toute activation de pixel ou d'appel
-server-side, ne déclenche jamais d'appel réseau réel sans confirmation explicite, et ne prétend
-jamais garantir une conformité légale : la checklist du plan de tracking doit être validée par la
-personne responsable désignée (DPO, juridique, ou équivalent).
-
-Voir [ROADMAP.md](ROADMAP.md) pour les évolutions envisagées.
-
-## Développement local
-
-```bash
-npm install
-npm run lint
-npm run typecheck
-npm run test
-npm run format:check
-```
-
-## Sécurité
-
-Aucun secret, token, pixel ID réel ou donnée personnelle ne doit être commité dans ce dépôt — voir
-[SECURITY.md](SECURITY.md).
+Voir [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
